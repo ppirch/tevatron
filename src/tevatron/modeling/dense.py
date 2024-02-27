@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import Tensor
 import logging
 from .encoder import EncoderPooler, EncoderModel
@@ -31,24 +32,34 @@ class DensePooler(EncoderPooler):
 
 
 class DenseModel(EncoderModel):
-    def encode_passage(self, psg):
+    def encode_passage(self, psg, pooling):
         if psg is None:
             return None
         psg_out = self.lm_p(**psg, return_dict=True)
         p_hidden = psg_out.last_hidden_state
         if self.pooler is not None:
             p_reps = self.pooler(p=p_hidden)  # D * d
+        elif pooling == "average":
+            attention_mask = psg['attention_mask']
+            p_hidden = p_hidden.masked_fill(~attention_mask[..., None].bool(), 0.0)
+            p_reps = p_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+            p_reps = F.normalize(p_reps, p=2, dim=1)
         else:
             p_reps = p_hidden[:, 0]
         return p_reps
 
-    def encode_query(self, qry):
+    def encode_query(self, qry, pooling):
         if qry is None:
             return None
         qry_out = self.lm_q(**qry, return_dict=True)
         q_hidden = qry_out.last_hidden_state
         if self.pooler is not None:
             q_reps = self.pooler(q=q_hidden)
+        elif pooling == "average":
+            attention_mask = qry['attention_mask']
+            q_hidden = q_hidden.masked_fill(~attention_mask[..., None].bool(), 0.0)
+            q_reps = q_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+            q_reps = F.normalize(q_reps, p=2, dim=1)
         else:
             q_reps = q_hidden[:, 0]
         return q_reps

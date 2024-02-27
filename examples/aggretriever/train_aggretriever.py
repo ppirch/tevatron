@@ -19,6 +19,9 @@ from tevatron.datasets import HFTrainDataset
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class AggretrieverTrainingArguments(TevatronTrainingArguments):
+    cont: bool = field(default=False)
 
 @dataclass
 class AggretrieverModelArguments(ModelArguments):
@@ -84,7 +87,7 @@ class AggretrieverTrainer(TevatronTrainer):
 
 
 def main():
-    parser = HfArgumentParser((AggretrieverModelArguments, DataArguments, TevatronTrainingArguments))
+    parser = HfArgumentParser((AggretrieverModelArguments, DataArguments, AggretrieverTrainingArguments))
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
@@ -154,9 +157,7 @@ def main():
 
     train_dataset = HFTrainDataset(tokenizer=tokenizer, data_args=data_args,
                                    cache_dir=data_args.data_cache_dir or model_args.cache_dir)
-    train_dataset = train_dataset.process()
-    train_dataset = train_dataset.filter(lambda x: len(x["negatives"]) >= data_args.train_n_passages)
-    train_dataset = TrainDataset(data_args, train_dataset, tokenizer)
+    train_dataset = TrainDataset(data_args, train_dataset.process(), tokenizer)
 
     trainer = AggretrieverTrainer(
         model=model,

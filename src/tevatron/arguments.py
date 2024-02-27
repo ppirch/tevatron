@@ -18,6 +18,9 @@ class ModelArguments:
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
     )
+    pooling: Optional[str] = field(
+        default="cls", metadata={"help": "pooling method for query and passage"}
+    )
 
     # modeling
     untie_encoder: bool = field(

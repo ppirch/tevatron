@@ -95,10 +95,10 @@ def main():
                 for k, v in batch.items():
                     batch[k] = v.to(training_args.device)
                 if data_args.encode_is_qry:
-                    model_output: EncoderOutput = model(query=batch)
+                    model_output: EncoderOutput = model(query=batch, pooling=model_args.pooling)
                     encoded.append(model_output.q_reps.cpu().detach().numpy())
                 else:
-                    model_output: EncoderOutput = model(passage=batch)
+                    model_output: EncoderOutput = model(passage=batch, pooling=model_args.pooling)
                     encoded.append(model_output.p_reps.cpu().detach().numpy())
 
     encoded = np.concatenate(encoded)

@@ -74,9 +74,9 @@ class EncoderModel(nn.Module):
             self.process_rank = dist.get_rank()
             self.world_size = dist.get_world_size()
 
-    def forward(self, query: Dict[str, Tensor] = None, passage: Dict[str, Tensor] = None):
-        q_reps = self.encode_query(query)
-        p_reps = self.encode_passage(passage)
+    def forward(self, query: Dict[str, Tensor] = None, passage: Dict[str, Tensor] = None, pooling="cls"):
+        q_reps = self.encode_query(query, pooling=pooling)
+        p_reps = self.encode_passage(passage, pooling=pooling)
 
         # for inference
         if q_reps is None or p_reps is None:

@@ -3,3 +3,4 @@ from .dense import DenseModel
 from .unicoil import UniCoilModel
 from .splade import SpladeModel
 from .colbert import ColbertModel
+from .aggretriever import AggretrieverModel
